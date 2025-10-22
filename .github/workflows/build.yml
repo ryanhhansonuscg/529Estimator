@@ -9,6 +9,10 @@ jobs:
   build-windows:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: bash -l {0}   # <<< critical: load conda init
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,16 +29,14 @@ jobs:
           use-mamba: true
           auto-activate-base: false
 
-      - name: Sanity check env
-        shell: bash
+      - name: Sanity
         run: |
           conda info --envs
-          conda run -n estimator-build --no-capture-output python -V
-          conda run -n estimator-build --no-capture-output python -c "import tkinter, matplotlib, numpy; print('deps OK')"
-          conda run -n estimator-build --no-capture-output pyinstaller --version
+          python -V
+          python -c "import tkinter, matplotlib, numpy; print('deps OK')"
+          python -m pip show pyinstaller
 
-      - name: Build EXE with PyInstaller
-        shell: bash
+      - name: Build EXE
         run: |
           cat > run_estimator.py <<'PY'
           from estimator529 import main
@@ -44,7 +46,7 @@ jobs:
               main()
           PY
 
-          conda run -n estimator-build --no-capture-output pyinstaller --onefile --windowed \
+          pyinstaller --onefile --windowed \
             --name 529Estimator \
             --collect-all matplotlib \
             --hidden-import tkinter.filedialog \
