@@ -20,22 +20,21 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           conda-remove-defaults: true
-          environment-file: environment.yml     # <-- create from your file
-          activate-environment: estimator-build # <-- and activate it
+          environment-file: environment.yml
+          activate-environment: estimator-build
           use-mamba: true
           auto-activate-base: false
 
-      - name: Create environment
+      - name: Verify env
         shell: bash -l {0}
         run: |
-          mamba env update -n estimator-build -f environment.yml
-          conda activate estimator-build
+          conda info --envs
           python -V
+          python -c "import tkinter, matplotlib; print('tk+mpl OK')"
 
       - name: Build EXE with PyInstaller
         shell: bash -l {0}
         run: |
-          # Build a tiny launcher so we import the package correctly.
           cat > run_estimator.py <<'PY'
           from estimator529 import main
           if __name__ == '__main__':

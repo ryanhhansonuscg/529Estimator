@@ -4,10 +4,7 @@ channels:
 dependencies:
   - python=3.11
   - tk
-  - matplotlib
-  - numpy         # uncomment if you decide to require NumPy
-  - pip
-  - pandas
-  - scipy
+  - matplotlib>=3.7
+    - numpy>=1.24
   - pip:
       - pyinstaller
