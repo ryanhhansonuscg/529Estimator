@@ -30,7 +30,7 @@ jobs:
         run: |
           conda info --envs
           python -V
-          python -c "import tkinter, matplotlib; print('tk+mpl OK')"
+          python -c "import tkinter, matplotlib, numpy; print('deps OK')"
 
       - name: Build EXE with PyInstaller
         shell: bash -l {0}

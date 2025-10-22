@@ -5,6 +5,7 @@ dependencies:
   - python=3.11
   - tk
   - matplotlib>=3.7
-    - numpy>=1.24
+  - numpy>=1.24
+  - pip
   - pip:
-      - pyinstaller
+      - pyinstaller>=6
