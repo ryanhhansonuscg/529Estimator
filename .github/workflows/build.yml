@@ -8,7 +8,6 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-
     defaults:
       run:
         shell: bash -l {0}   # <<< critical: load conda init
@@ -29,14 +28,15 @@ jobs:
           use-mamba: true
           auto-activate-base: false
 
-      - name: Sanity
+      - name: Sanity (no activation)
+        shell: bash
         run: |
-          conda info --envs
-          python -V
-          python -c "import tkinter, matplotlib, numpy; print('deps OK')"
-          python -m pip show pyinstaller
+          "$CONDA/condabin/conda.bat" run -n estimator-build python -V
+          "$CONDA/condabin/conda.bat" run -n estimator-build python -c "import tkinter, matplotlib; print('deps OK')"
+          "$CONDA/condabin/conda.bat" run -n estimator-build pyinstaller --version
 
-      - name: Build EXE
+      - name: Build EXE (no activation)
+        shell: bash
         run: |
           cat > run_estimator.py <<'PY'
           from estimator529 import main
@@ -46,7 +46,7 @@ jobs:
               main()
           PY
 
-          pyinstaller --onefile --windowed \
+          "$CONDA/condabin/conda.bat" run -n estimator-build pyinstaller --onefile --windowed \
             --name 529Estimator \
             --collect-all matplotlib \
             --hidden-import tkinter.filedialog \
@@ -54,8 +54,6 @@ jobs:
             --hidden-import tkinter.messagebox \
             --hidden-import tkinter.scrolledtext \
             -p src run_estimator.py
-
-          ls -la dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
