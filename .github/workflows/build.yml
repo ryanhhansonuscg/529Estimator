@@ -16,20 +16,24 @@ jobs:
       - name: Set up Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: estimator-build
-          miniforge-variant: Miniforge3   # <-- changed from Mambaforge
-          python-version: "3.11"
+          miniforge-variant: Miniforge3
           channels: conda-forge
+          channel-priority: strict
+          conda-remove-defaults: true
+          environment-file: environment.yml     # <-- create from your file
+          activate-environment: estimator-build # <-- and activate it
           use-mamba: true
+          auto-activate-base: false
 
-      - name: Create/Update env
-        shell: bash
+      - name: Create environment
+        shell: bash -l {0}
         run: |
-          mamba install -y python=3.11 tk matplotlib pyinstaller
+          mamba env update -n estimator-build -f environment.yml
+          conda activate estimator-build
           python -V
 
       - name: Build EXE with PyInstaller
-        shell: bash
+        shell: bash -l {0}
         run: |
           # Build a tiny launcher so we import the package correctly.
           cat > run_estimator.py <<'PY'

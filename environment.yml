@@ -5,7 +5,9 @@ dependencies:
   - python=3.11
   - tk
   - matplotlib
-  # - numpy         # uncomment if you decide to require NumPy
+  - numpy         # uncomment if you decide to require NumPy
   - pip
+  - pandas
+  - scipy
   - pip:
       - pyinstaller
