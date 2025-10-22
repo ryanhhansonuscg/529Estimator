@@ -13,11 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Mambaforge (Conda)
+      - name: Set up Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: estimator-build
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3   # <-- changed from Mambaforge
           python-version: "3.11"
           channels: conda-forge
           use-mamba: true
