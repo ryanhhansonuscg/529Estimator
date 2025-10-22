@@ -31,15 +31,14 @@ jobs:
       - name: Build EXE with PyInstaller
         shell: bash
         run: |
-          # If you kept '529Estimator' as the *package folder* name, stop and rename it.
-          # Import names cannot start with a digit.
-          # Build from the package entry (__main__.py) via a tiny launcher to ensure package context.
-          echo "from estimator529 import main
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()
-    main()
-" > run_estimator.py
+          # Build a tiny launcher so we import the package correctly.
+          cat > run_estimator.py <<'PY'
+          from estimator529 import main
+          if __name__ == '__main__':
+              import multiprocessing
+              multiprocessing.freeze_support()
+              main()
+          PY
 
           pyinstaller --onefile --windowed \
             --name 529Estimator \
