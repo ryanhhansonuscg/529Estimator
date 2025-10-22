@@ -2,13 +2,13 @@ name: build-windows-exe
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    tags: ["v*.*.*"]
   workflow_dispatch: {}
 
 jobs:
   build-windows:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,17 +25,16 @@ jobs:
           use-mamba: true
           auto-activate-base: false
 
-      - name: Verify env
-        shell: bash -l {0}
+      - name: Sanity check env
+        shell: bash
         run: |
           conda info --envs
-          which python
-          python -V
-          python -m pip show pyinstaller || true
-          python -c "import tkinter, matplotlib, numpy; print('deps OK')"
+          conda run -n estimator-build --no-capture-output python -V
+          conda run -n estimator-build --no-capture-output python -c "import tkinter, matplotlib, numpy; print('deps OK')"
+          conda run -n estimator-build --no-capture-output pyinstaller --version
 
       - name: Build EXE with PyInstaller
-        shell: bash -l {0}
+        shell: bash
         run: |
           cat > run_estimator.py <<'PY'
           from estimator529 import main
@@ -44,9 +43,6 @@ jobs:
               multiprocessing.freeze_support()
               main()
           PY
-
-          conda run -n estimator-build --no-capture-output python -m pip show pyinstaller
-          conda run -n estimator-build --no-capture-output pyinstaller --version
 
           conda run -n estimator-build --no-capture-output pyinstaller --onefile --windowed \
             --name 529Estimator \
@@ -64,21 +60,3 @@ jobs:
         with:
           name: 529Estimator-windows
           path: dist/529Estimator.exe
-
-  release:
-    needs: build-windows
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: 529Estimator-windows
-          path: .
-
-      - name: Publish GitHub Release asset
-        uses: softprops/action-gh-release@v2
-        with:
-          files: 529Estimator.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
