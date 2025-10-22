@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "529Estimator"
+version = "1.0"
+description = "529 plan projection calculator with CLI and GUI interfaces"
+readme = "README.md"
+authors = [{name = "529Estimator Maintainers"}]
+license = {text = "Proprietary"}
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+numpy = ["numpy>=1.24"]
+
+[project.scripts]
+529-estimator = "estimator529:main"
+529-estimator-gui = "estimator529.gui.app:run"
+529-estimator-cli = "estimator529:main_cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+529Estimator = ["py.typed"]

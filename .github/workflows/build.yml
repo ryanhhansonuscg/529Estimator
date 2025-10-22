@@ -1,0 +1,77 @@
+name: build-windows-exe
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: {}
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Mambaforge (Conda)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: estimator-build
+          miniforge-variant: Mambaforge
+          python-version: "3.11"
+          channels: conda-forge
+          use-mamba: true
+
+      - name: Create/Update env
+        shell: bash
+        run: |
+          mamba install -y python=3.11 tk matplotlib pyinstaller
+          python -V
+
+      - name: Build EXE with PyInstaller
+        shell: bash
+        run: |
+          # If you kept '529Estimator' as the *package folder* name, stop and rename it.
+          # Import names cannot start with a digit.
+          # Build from the package entry (__main__.py) via a tiny launcher to ensure package context.
+          echo "from estimator529 import main
+if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
+    main()
+" > run_estimator.py
+
+          pyinstaller --onefile --windowed \
+            --name 529Estimator \
+            --collect-all matplotlib \
+            --hidden-import tkinter.filedialog \
+            --hidden-import tkinter.colorchooser \
+            --hidden-import tkinter.messagebox \
+            --hidden-import tkinter.scrolledtext \
+            -p src run_estimator.py
+
+          ls -la dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 529Estimator-windows
+          path: dist/529Estimator.exe
+
+  release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: 529Estimator-windows
+          path: .
+
+      - name: Publish GitHub Release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: 529Estimator.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

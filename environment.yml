@@ -1,0 +1,11 @@
+name: estimator-build
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - tk
+  - matplotlib
+  # - numpy         # uncomment if you decide to require NumPy
+  - pip
+  - pip:
+      - pyinstaller
