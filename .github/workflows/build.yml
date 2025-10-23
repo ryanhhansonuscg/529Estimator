@@ -2,15 +2,17 @@ name: build-windows-exe
 
 on:
   push:
-    tags: ["v*.*.*", "V*.*.*"]
+    tags: ["v*.*.*", "V*.*.*"]   # handles both v1.2.3 and V1.2.3
   workflow_dispatch: {}
 
 jobs:
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: write            # <-- required for release upload
     defaults:
       run:
-        shell: bash -l {0}   # <<< critical: load conda init
+        shell: bash -l {0}       # load conda init
 
     steps:
       - name: Checkout
@@ -55,36 +57,37 @@ jobs:
             --hidden-import tkinter.scrolledtext \
             -p src run_estimator.py
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 529Estimator-windows
-          path: dist/529Estimator.exe
-  release:
-    needs: build-windows
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write                     # <— important
+      - name: Package zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\529Estimator.exe `
+            -DestinationPath dist\529Estimator-windows.zip -Force
 
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: .
+      - name: Verify outputs exist
+        run: |
+          test -f dist/529Estimator.exe || (echo "Missing dist/529Estimator.exe" && exit 1)
+          test -f dist/529Estimator-windows.zip || (echo "Missing dist/529Estimator-windows.zip" && exit 1)
 
-      - name: Publish GitHub Release asset
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          Get-FileHash dist\529Estimator.exe -Algorithm SHA256 | ForEach-Object { $_.Hash } > dist\529Estimator.exe.sha256
+          Get-FileHash dist\529Estimator-windows.zip -Algorithm SHA256 | ForEach-Object { $_.Hash } > dist\529Estimator-windows.zip.sha256
+
+      - name: Sanity list
+        run: ls -la dist
+
+      - name: Publish Release with Assets
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            529Estimator.exe
-            529Estimator-windows.zip
-            529Estimator.exe.sha256
-            529Estimator-windows.zip.sha256
+            dist/529Estimator.exe
+            dist/529Estimator-windows.zip
+            dist/529Estimator.exe.sha256
+            dist/529Estimator-windows.zip.sha256
           generate_release_notes: true
-          fail_on_unmatched_files: true    # <— catch path mistakes
-          # draft: true                    # <— uncomment if you want to review first
-          # prerelease: true               # <— use for RCs/betas
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
