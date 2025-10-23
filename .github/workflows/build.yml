@@ -2,7 +2,7 @@ name: build-windows-exe
 
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["v*.*.*", "V*.*.*"]
   workflow_dispatch: {}
 
 jobs:
@@ -65,7 +65,8 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
-      contents: write  # required for creating a release
+      contents: write                     # <— important
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -79,6 +80,11 @@ jobs:
           files: |
             529Estimator.exe
             529Estimator-windows.zip
+            529Estimator.exe.sha256
+            529Estimator-windows.zip.sha256
           generate_release_notes: true
+          fail_on_unmatched_files: true    # <— catch path mistakes
+          # draft: true                    # <— uncomment if you want to review first
+          # prerelease: true               # <— use for RCs/betas
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
